@@ -4,7 +4,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Activity, Clock, Zap } from 'lucide-react';
-import { PerformanceMetrics } from '../../types';
+import type { PerformanceMetrics } from '../../types';
 import './PerformanceHUD.css';
 
 interface PerformanceHUDProps {

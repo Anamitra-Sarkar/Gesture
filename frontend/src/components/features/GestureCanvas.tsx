@@ -2,7 +2,7 @@
  * Canvas component for rendering hand landmarks and video feed
  */
 import React, { useRef, useEffect } from 'react';
-import { HandLandmarks } from '../../types';
+import type { HandLandmarks } from '../../types';
 import './GestureCanvas.css';
 
 interface GestureCanvasProps {
@@ -86,7 +86,7 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
     w: number,
     h: number
   ) => {
-    hands.forEach((hand, handIndex) => {
+    hands.forEach((hand) => {
       const color = hand.handedness === 'Left' ? '#00f0ff' : '#ff00ff';
       
       // Draw landmarks

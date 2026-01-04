@@ -9,8 +9,6 @@ import {
   RefreshCw,
   Settings,
   Upload,
-  Play,
-  Pause,
 } from 'lucide-react';
 import './ControlPanel.css';
 

@@ -2,7 +2,7 @@
  * Custom hook for WebSocket connection and real-time hand tracking
  */
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { WebSocketMessage, FrameAnalysis } from '../types';
+import type { WebSocketMessage, FrameAnalysis } from '../types';
 import { apiService } from '../services/api';
 
 export interface UseWebSocketReturn {
@@ -21,7 +21,7 @@ export function useWebSocket(): UseWebSocketReturn {
   const [error, setError] = useState<string | null>(null);
   
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const reconnectTimeoutRef = useRef<number | null>(null);
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -86,7 +86,7 @@ export function useWebSocket(): UseWebSocketReturn {
   useEffect(() => {
     return () => {
       disconnect();
-      if (reconnectTimeoutRef.current) {
+      if (reconnectTimeoutRef.current !== null) {
         clearTimeout(reconnectTimeoutRef.current);
       }
     };

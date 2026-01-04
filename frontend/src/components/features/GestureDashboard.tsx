@@ -3,7 +3,8 @@
  */
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DetectedGesture, GestureType } from '../../types';
+import type { DetectedGesture } from '../../types';
+import { GestureType } from '../../types';
 import { Hand, Activity } from 'lucide-react';
 import './GestureDashboard.css';
 

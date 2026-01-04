@@ -2,17 +2,19 @@
  * Type definitions for the Hand Gesture Recognition Platform
  */
 
-export enum GestureType {
-  UNKNOWN = 'unknown',
-  OPEN_PALM = 'open_palm',
-  FIST = 'fist',
-  PINCH = 'pinch',
-  POINTING = 'pointing',
-  THUMBS_UP = 'thumbs_up',
-  THUMBS_DOWN = 'thumbs_down',
-  PEACE = 'peace',
-  OK_SIGN = 'ok_sign',
-}
+export const GestureType = {
+  UNKNOWN: 'unknown',
+  OPEN_PALM: 'open_palm',
+  FIST: 'fist',
+  PINCH: 'pinch',
+  POINTING: 'pointing',
+  THUMBS_UP: 'thumbs_up',
+  THUMBS_DOWN: 'thumbs_down',
+  PEACE: 'peace',
+  OK_SIGN: 'ok_sign',
+} as const;
+
+export type GestureType = typeof GestureType[keyof typeof GestureType];
 
 export interface LandmarkPoint {
   x: number;

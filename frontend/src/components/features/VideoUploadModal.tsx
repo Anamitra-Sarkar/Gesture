@@ -5,7 +5,7 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, File, CheckCircle, AlertCircle } from 'lucide-react';
 import { apiService } from '../../services/api';
-import { VideoUploadResponse } from '../../types';
+import type { VideoUploadResponse } from '../../types';
 import './VideoUploadModal.css';
 
 interface VideoUploadModalProps {

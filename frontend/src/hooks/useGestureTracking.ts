@@ -2,7 +2,7 @@
  * Custom hook for gesture tracking and analytics
  */
 import { useState, useEffect, useCallback } from 'react';
-import { DetectedGesture, PerformanceMetrics } from '../types';
+import type { DetectedGesture, PerformanceMetrics } from '../types';
 
 export interface UseGestureTrackingReturn {
   recentGestures: DetectedGesture[];
