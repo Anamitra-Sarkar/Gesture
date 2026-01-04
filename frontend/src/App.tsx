@@ -138,8 +138,10 @@ function App() {
         isOpen={uploadModalOpen}
         onClose={() => setUploadModalOpen(false)}
         onUploadSuccess={(response) => {
-          console.log('Video uploaded:', response);
-          // TODO: Process uploaded video
+          console.log('Video uploaded successfully:', response);
+          // Video processing would be implemented here in future versions
+          // Could include: Real-time processing status, frame-by-frame analysis display,
+          // or batch processing with result download
         }}
       />
 

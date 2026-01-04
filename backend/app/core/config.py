@@ -3,6 +3,7 @@ Configuration settings for the gesture recognition backend.
 """
 from pydantic_settings import BaseSettings
 from typing import Optional
+import os
 
 
 class Settings(BaseSettings):
@@ -19,6 +20,14 @@ class Settings(BaseSettings):
     
     # CORS
     CORS_ORIGINS: list = ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"]
+    
+    @property
+    def allowed_origins(self) -> list:
+        """Get CORS origins from environment or use defaults."""
+        env_origins = os.getenv("CORS_ORIGINS")
+        if env_origins:
+            return [origin.strip() for origin in env_origins.split(",")]
+        return self.CORS_ORIGINS
     
     # Camera Settings
     CAMERA_INDEX: int = 0

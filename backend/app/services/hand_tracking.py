@@ -438,4 +438,5 @@ class HandTrackingEngine:
         """Clean up resources."""
         if self.hands:
             self.hands.close()
+            self.hands = None
         logger.info("Hand tracking engine closed")
