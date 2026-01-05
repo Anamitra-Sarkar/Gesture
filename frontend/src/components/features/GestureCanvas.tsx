@@ -46,11 +46,12 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
 
       // Priority 1: Show LOCAL camera feed if active
       if (isCameraActive && video && video.readyState >= 2) {
-        // Draw live camera preview directly from video element
+        // Draw live camera preview with mirror effect
+        // save/restore is efficient and standard practice for canvas transforms
         ctx.save();
-        // Mirror the video horizontally for natural mirror effect
         ctx.scale(-1, 1);
-        ctx.drawImage(video, -width, 0, width, height);
+        ctx.translate(-width, 0);
+        ctx.drawImage(video, 0, 0, width, height);
         ctx.restore();
         
         // Draw landmarks from backend (if available)

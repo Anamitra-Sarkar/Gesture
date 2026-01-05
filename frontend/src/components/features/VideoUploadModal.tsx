@@ -3,7 +3,7 @@
  */
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, File, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { Upload, X, File, CheckCircle, AlertCircle } from 'lucide-react';
 import { apiService } from '../../services/api';
 import { validateVideoFile } from '../../utils/permissions';
 import { UploadState } from '../../types';
@@ -252,7 +252,6 @@ export const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
                           className="btn btn-primary"
                           onClick={handleUpload}
                         >
-                          <Loader size={16} />
                           Retry Upload
                         </button>
                         <button

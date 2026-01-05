@@ -49,7 +49,8 @@ export function useWebSocket(): UseWebSocketReturn {
 
       // Set connection timeout (10 seconds)
       connectionTimeoutRef.current = window.setTimeout(() => {
-        if (connectionState === WebSocketState.CONNECTING || connectionState === WebSocketState.CONNECTED) {
+        // Check WebSocket state directly, not from closure
+        if (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN) {
           console.error('WebSocket connection timeout - no READY signal received');
           setConnectionState(WebSocketState.ERROR);
           setError('Connection timeout. Backend did not respond in time.');
