@@ -1,5 +1,6 @@
 /**
  * Custom hook for WebSocket connection and real-time hand tracking
+ * PRODUCTION ARCHITECTURE: Client sends frames to server for processing
  */
 import { useEffect, useRef, useState, useCallback } from 'react';
 import type { WebSocketMessage, FrameAnalysis } from '../types';
@@ -12,6 +13,7 @@ export interface UseWebSocketReturn {
   error: string | null;
   connect: () => void;
   disconnect: () => void;
+  sendFrame: (frameData: string) => void;
 }
 
 export function useWebSocket(): UseWebSocketReturn {
@@ -51,6 +53,9 @@ export function useWebSocket(): UseWebSocketReturn {
             }
           } else if (message.message_type === 'error') {
             setError(message.data.error || 'Unknown error');
+          } else if (message.message_type === 'pong') {
+            // Keep-alive pong received
+            console.debug('Pong received');
           }
         } catch (err) {
           console.error('Error parsing WebSocket message:', err);
@@ -75,12 +80,35 @@ export function useWebSocket(): UseWebSocketReturn {
 
   const disconnect = useCallback(() => {
     if (wsRef.current) {
+      // Send stop message
+      try {
+        wsRef.current.send(JSON.stringify({ type: 'stop' }));
+      } catch (err) {
+        console.error('Error sending stop message:', err);
+      }
+      
       wsRef.current.close();
       wsRef.current = null;
     }
     setIsConnected(false);
     setFrameAnalysis(null);
     setFrameImage(null);
+  }, []);
+
+  const sendFrame = useCallback((frameData: string) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      try {
+        wsRef.current.send(JSON.stringify({
+          type: 'frame',
+          frame: frameData,
+          timestamp: Date.now()
+        }));
+      } catch (err) {
+        const errorDetails = err instanceof Error ? err.message : 'Unknown error';
+        console.error('Error sending frame:', errorDetails);
+        setError(`Failed to send frame to server: ${errorDetails}`);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -99,5 +127,6 @@ export function useWebSocket(): UseWebSocketReturn {
     error,
     connect,
     disconnect,
+    sendFrame,
   };
 }

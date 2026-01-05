@@ -19,9 +19,14 @@ logger = setup_logging(settings.DEBUG_MODE)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
-    logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
+    logger.startup(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
+    logger.startup(f"Server: {settings.HOST}:{settings.PORT}")
+    logger.startup(f"CORS Origins: {settings.allowed_origins}")
+    logger.startup(f"Debug Mode: {settings.DEBUG_MODE}")
+    logger.readiness("Application ready to accept requests")
     yield
-    logger.info("Shutting down application")
+    logger.shutdown("Shutting down application")
+    logger.shutdown("Cleanup complete")
 
 
 # Create FastAPI application
@@ -63,6 +68,12 @@ async def root():
     }
 
 
+@app.head("/")
+async def root_head():
+    """HEAD endpoint for root - used by health checks."""
+    return None
+
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
@@ -70,6 +81,12 @@ async def health_check():
         "status": "healthy",
         "service": settings.APP_NAME
     }
+
+
+@app.head("/health")
+async def health_check_head():
+    """HEAD endpoint for health check - used by monitoring systems."""
+    return None
 
 
 # Global exception handler
