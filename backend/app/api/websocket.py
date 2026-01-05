@@ -41,9 +41,10 @@ async def websocket_live_tracking(websocket: WebSocket):
         while True:
             try:
                 # Receive frame data from client
+                # Reduced timeout to 5 seconds for better responsiveness
                 message_text = await asyncio.wait_for(
                     websocket.receive_text(),
-                    timeout=10.0  # 10 second timeout for client frames
+                    timeout=5.0
                 )
                 
                 message_data = json.loads(message_text)

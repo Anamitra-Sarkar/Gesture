@@ -5,10 +5,6 @@ from pydantic_settings import BaseSettings
 from typing import Optional, List
 import os
 import json
-import logging
-
-
-logger = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
@@ -40,7 +36,8 @@ class Settings(BaseSettings):
             try:
                 self.PORT = int(port_env)
             except ValueError:
-                logger.warning(f"Invalid PORT value: {port_env}, using default 8000")
+                # Don't use logger here - it may not be initialized yet
+                print(f"Warning: Invalid PORT value: {port_env}, using default 8000")
                 self.PORT = 8000
     
     @property
@@ -55,7 +52,7 @@ class Settings(BaseSettings):
         env_origins = os.getenv("CORS_ORIGINS", "").strip()
         
         if not env_origins:
-            logger.info(f"Using default CORS origins: {self._default_cors_origins}")
+            # Note: Don't use logger here as it may not be initialized yet
             return self._default_cors_origins
         
         # Try to parse as JSON array first
@@ -64,21 +61,18 @@ class Settings(BaseSettings):
                 origins = json.loads(env_origins)
                 if isinstance(origins, list):
                     parsed_origins = [str(origin).strip() for origin in origins if origin]
-                    logger.info(f"Parsed CORS origins from JSON: {parsed_origins}")
                     return parsed_origins
-            except json.JSONDecodeError as e:
-                logger.warning(f"Failed to parse CORS_ORIGINS as JSON: {e}")
+            except json.JSONDecodeError:
+                # Fallback to default on parse error
+                return self._default_cors_origins
         
         # Try comma-separated list
         if ',' in env_origins:
             parsed_origins = [origin.strip() for origin in env_origins.split(',') if origin.strip()]
-            logger.info(f"Parsed CORS origins from CSV: {parsed_origins}")
             return parsed_origins
         
         # Single origin
-        parsed_origins = [env_origins]
-        logger.info(f"Using single CORS origin: {parsed_origins}")
-        return parsed_origins
+        return [env_origins]
     
     # Camera Settings
     CAMERA_INDEX: int = 0

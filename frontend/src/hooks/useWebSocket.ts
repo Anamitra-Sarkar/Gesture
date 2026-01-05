@@ -104,8 +104,9 @@ export function useWebSocket(): UseWebSocketReturn {
           timestamp: Date.now()
         }));
       } catch (err) {
-        console.error('Error sending frame:', err);
-        setError('Failed to send frame to server');
+        const errorDetails = err instanceof Error ? err.message : 'Unknown error';
+        console.error('Error sending frame:', errorDetails);
+        setError(`Failed to send frame to server: ${errorDetails}`);
       }
     }
   }, []);

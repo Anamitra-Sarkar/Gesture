@@ -59,11 +59,24 @@ export function useCamera(): UseCameraReturn {
       
       console.log('Camera started successfully');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to start camera';
+      let errorMessage = 'Failed to start camera';
+      
+      if (err instanceof Error) {
+        if (err.name === 'NotAllowedError') {
+          errorMessage = 'Camera access denied. Please allow camera permissions in your browser.';
+        } else if (err.name === 'NotFoundError') {
+          errorMessage = 'No camera found. Please connect a camera and try again.';
+        } else if (err.name === 'NotReadableError') {
+          errorMessage = 'Camera is in use by another application. Please close other apps and try again.';
+        } else {
+          errorMessage = `Camera error: ${err.message}`;
+        }
+      }
+      
       setError(errorMessage);
       setIsActive(false);
       console.error('Camera error:', err);
-      throw err;
+      throw new Error(errorMessage);
     }
   }, []);
 
