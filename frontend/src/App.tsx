@@ -8,6 +8,7 @@ import { GestureDashboard } from './components/features/GestureDashboard';
 import { PerformanceHUD } from './components/features/PerformanceHUD';
 import { ControlPanel } from './components/features/ControlPanel';
 import { VideoUploadModal } from './components/features/VideoUploadModal';
+import { PermissionModal } from './components/features/PermissionModal';
 import { useWebSocket } from './hooks/useWebSocket';
 import { useGestureTracking } from './hooks/useGestureTracking';
 import { apiService } from './services/api';
@@ -17,6 +18,8 @@ import './App.css';
 function App() {
   const [cameraActive, setCameraActive] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [permissionModalOpen, setPermissionModalOpen] = useState(false);
+  const [permissionGranted, setPermissionGranted] = useState(false);
   
   const { isConnected, frameAnalysis, frameImage, connect, disconnect } = useWebSocket();
   const { recentGestures, metrics, addGesture, updateMetrics, reset } = useGestureTracking();
@@ -37,13 +40,38 @@ function App() {
   }, [frameAnalysis, addGesture, updateMetrics]);
 
   const handleStartCamera = async () => {
+    // First, show permission modal if not already granted
+    if (!permissionGranted) {
+      setPermissionModalOpen(true);
+      return;
+    }
+
     try {
       await apiService.startCamera();
       setCameraActive(true);
       connect();
     } catch (error) {
       console.error('Failed to start camera:', error);
-      alert('Failed to start camera. Please check if camera is available.');
+      alert('Failed to start camera. The backend may not be able to access the camera device.');
+    }
+  };
+
+  const handlePermissionGranted = () => {
+    setPermissionGranted(true);
+    // Automatically start camera after permission is granted
+    setTimeout(() => {
+      handleStartCameraAfterPermission();
+    }, 500);
+  };
+
+  const handleStartCameraAfterPermission = async () => {
+    try {
+      await apiService.startCamera();
+      setCameraActive(true);
+      connect();
+    } catch (error) {
+      console.error('Failed to start camera:', error);
+      alert('Failed to start camera. The backend may not be able to access the camera device.');
     }
   };
 
@@ -143,6 +171,13 @@ function App() {
           // Could include: Real-time processing status, frame-by-frame analysis display,
           // or batch processing with result download
         }}
+      />
+
+      {/* Permission Modal */}
+      <PermissionModal
+        isOpen={permissionModalOpen}
+        onClose={() => setPermissionModalOpen(false)}
+        onPermissionGranted={handlePermissionGranted}
       />
 
       {/* Footer */}

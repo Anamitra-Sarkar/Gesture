@@ -5,6 +5,7 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, File, CheckCircle, AlertCircle } from 'lucide-react';
 import { apiService } from '../../services/api';
+import { validateVideoFile } from '../../utils/permissions';
 import type { VideoUploadResponse } from '../../types';
 import './VideoUploadModal.css';
 
@@ -47,10 +48,11 @@ export const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
   };
 
   const handleFileSelect = (file: File) => {
-    const validTypes = ['video/mp4', 'video/avi', 'video/webm', 'video/quicktime'];
+    // Validate file using the utility function
+    const validation = validateVideoFile(file, 100, ['.mp4', '.avi', '.webm', '.mov']);
     
-    if (!validTypes.includes(file.type)) {
-      setError('Invalid file type. Please select MP4, AVI, WebM, or MOV.');
+    if (!validation.valid) {
+      setError(validation.error || 'Invalid file. Please check file format and size.');
       return;
     }
 

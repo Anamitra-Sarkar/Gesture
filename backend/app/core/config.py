@@ -16,10 +16,16 @@ class Settings(BaseSettings):
     
     # Server
     HOST: str = "0.0.0.0"
-    PORT: int = 8000
+    PORT: int = int(os.getenv("PORT", "8000"))  # Support Render's dynamic PORT
     
     # CORS
-    CORS_ORIGINS: list = ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"]
+    CORS_ORIGINS: list = [
+        "http://localhost:3000", 
+        "http://localhost:5173", 
+        "http://127.0.0.1:3000", 
+        "http://127.0.0.1:5173",
+        "https://gesture-detection-lac.vercel.app"  # Production frontend
+    ]
     
     @property
     def allowed_origins(self) -> list:
