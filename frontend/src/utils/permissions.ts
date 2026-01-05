@@ -2,12 +2,14 @@
  * Permission handling utilities for camera and file access
  */
 
-export enum PermissionState {
-  PROMPT = 'prompt',
-  GRANTED = 'granted',
-  DENIED = 'denied',
-  UNAVAILABLE = 'unavailable',
-}
+export const PermissionState = {
+  PROMPT: 'prompt',
+  GRANTED: 'granted',
+  DENIED: 'denied',
+  UNAVAILABLE: 'unavailable',
+} as const;
+
+export type PermissionStateType = typeof PermissionState[keyof typeof PermissionState];
 
 export interface CameraInfo {
   deviceId: string;
@@ -16,7 +18,7 @@ export interface CameraInfo {
 }
 
 export interface PermissionResult {
-  state: PermissionState;
+  state: PermissionStateType;
   message: string;
   cameras?: CameraInfo[];
 }
@@ -27,8 +29,8 @@ export interface PermissionResult {
 export function isCameraAvailable(): boolean {
   return !!(
     navigator.mediaDevices &&
-    navigator.mediaDevices.getUserMedia &&
-    navigator.mediaDevices.enumerateDevices
+    typeof navigator.mediaDevices.getUserMedia === 'function' &&
+    typeof navigator.mediaDevices.enumerateDevices === 'function'
   );
 }
 
@@ -142,14 +144,14 @@ export async function requestCameraPermission(): Promise<PermissionResult> {
 /**
  * Check current camera permission state without requesting
  */
-export async function checkCameraPermission(): Promise<PermissionState> {
+export async function checkCameraPermission(): Promise<PermissionStateType> {
   if (!isCameraAvailable()) {
     return PermissionState.UNAVAILABLE;
   }
 
   try {
     // Try to use the Permissions API if available
-    if ('permissions' in navigator) {
+    if ('permissions' in navigator && navigator.permissions) {
       const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
       if (result.state === 'granted') return PermissionState.GRANTED;
       if (result.state === 'denied') return PermissionState.DENIED;
@@ -157,16 +159,20 @@ export async function checkCameraPermission(): Promise<PermissionState> {
     }
 
     // Fallback: Try to enumerate devices
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const hasCamera = devices.some(device => device.kind === 'videoinput');
-    
-    if (!hasCamera) {
-      return PermissionState.UNAVAILABLE;
-    }
+    if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const hasCamera = devices.some((device: MediaDeviceInfo) => device.kind === 'videoinput');
+      
+      if (!hasCamera) {
+        return PermissionState.UNAVAILABLE;
+      }
 
-    // Check if we have labels (indicates permission was granted before)
-    const hasLabels = devices.some(device => device.label !== '');
-    return hasLabels ? PermissionState.GRANTED : PermissionState.PROMPT;
+      // Check if we have labels (indicates permission was granted before)
+      const hasLabels = devices.some((device: MediaDeviceInfo) => device.label !== '');
+      return hasLabels ? PermissionState.GRANTED : PermissionState.PROMPT;
+    }
+    
+    return PermissionState.PROMPT;
   } catch (error) {
     console.error('Error checking camera permission:', error);
     return PermissionState.PROMPT;

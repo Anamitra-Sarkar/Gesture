@@ -8,7 +8,8 @@ import {
   requestCameraPermission,
   checkCameraPermission,
   PermissionState,
-  PermissionResult,
+  type PermissionStateType,
+  type PermissionResult,
   getPermissionInstructions,
   getBrowserInfo,
 } from '../../utils/permissions';
@@ -25,7 +26,7 @@ export const PermissionModal: React.FC<PermissionModalProps> = ({
   onClose,
   onPermissionGranted,
 }) => {
-  const [permissionState, setPermissionState] = useState<PermissionState>(PermissionState.PROMPT);
+  const [permissionState, setPermissionState] = useState<PermissionStateType>(PermissionState.PROMPT);
   const [isRequesting, setIsRequesting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [cameras, setCameras] = useState<PermissionResult['cameras']>([]);

@@ -9,6 +9,7 @@ import { PerformanceHUD } from './components/features/PerformanceHUD';
 import { ControlPanel } from './components/features/ControlPanel';
 import { VideoUploadModal } from './components/features/VideoUploadModal';
 import { PermissionModal } from './components/features/PermissionModal';
+import { AnalyticsDashboard } from './components/features/AnalyticsDashboard';
 import { useWebSocket } from './hooks/useWebSocket';
 import { useGestureTracking } from './hooks/useGestureTracking';
 import { apiService } from './services/api';
@@ -20,6 +21,7 @@ function App() {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [permissionModalOpen, setPermissionModalOpen] = useState(false);
   const [permissionGranted, setPermissionGranted] = useState(false);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
   
   const { isConnected, frameAnalysis, frameImage, connect, disconnect } = useWebSocket();
   const { recentGestures, metrics, addGesture, updateMetrics, reset } = useGestureTracking();
@@ -130,6 +132,7 @@ function App() {
             onStopCamera={handleStopCamera}
             onReset={handleReset}
             onUploadClick={() => setUploadModalOpen(true)}
+            onAnalyticsClick={() => setAnalyticsOpen(true)}
           />
           
           <PerformanceHUD metrics={metrics} isLive={isConnected} />
@@ -178,6 +181,12 @@ function App() {
         isOpen={permissionModalOpen}
         onClose={() => setPermissionModalOpen(false)}
         onPermissionGranted={handlePermissionGranted}
+      />
+
+      {/* Analytics Dashboard */}
+      <AnalyticsDashboard
+        isOpen={analyticsOpen}
+        onClose={() => setAnalyticsOpen(false)}
       />
 
       {/* Footer */}

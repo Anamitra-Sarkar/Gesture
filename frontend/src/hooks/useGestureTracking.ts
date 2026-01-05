@@ -3,6 +3,13 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import type { DetectedGesture, PerformanceMetrics } from '../types';
+import {
+  saveGestureToHistory,
+  updateAnalytics,
+  createSessionId,
+  saveSessionData,
+  getSessionData,
+} from '../utils/storage';
 
 export interface UseGestureTrackingReturn {
   recentGestures: DetectedGesture[];
@@ -23,6 +30,16 @@ export function useGestureTracking(): UseGestureTrackingReturn {
 
   const [fpsHistory, setFpsHistory] = useState<number[]>([]);
   const [processingTimeHistory, setProcessingTimeHistory] = useState<number[]>([]);
+  const [sessionId] = useState(() => {
+    // Try to get existing session or create new one
+    const existingSession = getSessionData();
+    if (existingSession) {
+      return existingSession.sessionId;
+    }
+    const newSessionId = createSessionId();
+    saveSessionData(newSessionId, Date.now());
+    return newSessionId;
+  });
 
   const addGesture = useCallback((gesture: DetectedGesture) => {
     setRecentGestures((prev) => {
@@ -34,7 +51,23 @@ export function useGestureTracking(): UseGestureTrackingReturn {
       ...prev,
       gestures_detected: prev.gestures_detected + 1,
     }));
-  }, []);
+
+    // Persist to localStorage
+    saveGestureToHistory({
+      type: gesture.gesture_type,
+      confidence: gesture.confidence,
+      timestamp: Date.now(),
+      sessionId,
+    });
+
+    // Update analytics
+    updateAnalytics({
+      type: gesture.gesture_type,
+      confidence: gesture.confidence,
+      timestamp: Date.now(),
+      sessionId,
+    });
+  }, [sessionId]);
 
   const updateMetrics = useCallback((fps: number, processingTime: number) => {
     setFpsHistory((prev) => {

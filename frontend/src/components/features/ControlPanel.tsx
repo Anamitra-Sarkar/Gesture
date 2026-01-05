@@ -9,6 +9,7 @@ import {
   RefreshCw,
   Settings,
   Upload,
+  BarChart3,
 } from 'lucide-react';
 import './ControlPanel.css';
 
@@ -19,6 +20,7 @@ interface ControlPanelProps {
   onStopCamera: () => void;
   onReset: () => void;
   onUploadClick: () => void;
+  onAnalyticsClick?: () => void;
 }
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
@@ -28,6 +30,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   onStopCamera,
   onReset,
   onUploadClick,
+  onAnalyticsClick,
 }) => {
   return (
     <motion.div
@@ -87,6 +90,19 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           <Upload size={20} />
           <span>Upload Video</span>
         </motion.button>
+
+        {/* Analytics Button */}
+        {onAnalyticsClick && (
+          <motion.button
+            className="control-btn"
+            onClick={onAnalyticsClick}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <BarChart3 size={20} />
+            <span>Analytics</span>
+          </motion.button>
+        )}
       </div>
 
       {/* Connection Status */}
