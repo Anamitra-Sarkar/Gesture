@@ -27,7 +27,7 @@ function App() {
   const [backendStatus, setBackendStatus] = useState<'connecting' | 'ready' | 'error' | 'idle'>('idle');
   
   const { connectionState, isConnected, isReady, frameAnalysis, frameImage, error: wsError, connect, disconnect, sendFrame } = useWebSocket();
-  const { videoRef, isActive: isCameraActive, error: cameraError, startCamera, stopCamera, captureFrame } = useCamera();
+  const { videoRef, isActive: isCameraActive, startCamera, stopCamera, captureFrame } = useCamera();
   const { recentGestures, metrics, addGesture, updateMetrics, reset } = useGestureTracking();
   
   const frameIntervalRef = useRef<number | null>(null);

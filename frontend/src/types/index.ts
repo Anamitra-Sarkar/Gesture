@@ -69,13 +69,15 @@ export interface PerformanceMetrics {
 }
 
 // WebSocket connection states
-export enum WebSocketState {
-  DISCONNECTED = 'DISCONNECTED',
-  CONNECTING = 'CONNECTING',
-  CONNECTED = 'CONNECTED',
-  READY = 'READY',
-  ERROR = 'ERROR',
-}
+export const WebSocketState = {
+  DISCONNECTED: 'DISCONNECTED',
+  CONNECTING: 'CONNECTING',
+  CONNECTED: 'CONNECTED',
+  READY: 'READY',
+  ERROR: 'ERROR',
+} as const;
+
+export type WebSocketState = typeof WebSocketState[keyof typeof WebSocketState];
 
 export interface WebSocketMessage {
   message_type: string;
@@ -89,10 +91,12 @@ export interface WebSocketMessage {
 }
 
 // Upload states
-export enum UploadState {
-  IDLE = 'IDLE',
-  UPLOADING = 'UPLOADING',
-  PROCESSING = 'PROCESSING',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED',
-}
+export const UploadState = {
+  IDLE: 'IDLE',
+  UPLOADING: 'UPLOADING',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+} as const;
+
+export type UploadState = typeof UploadState[keyof typeof UploadState];
