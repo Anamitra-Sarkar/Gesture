@@ -1,49 +1,105 @@
 /**
  * Canvas component for rendering hand landmarks and video feed
+ * CRITICAL: Shows local camera preview immediately, backend processing is parallel
  */
 import React, { useRef, useEffect } from 'react';
 import type { HandLandmarks } from '../../types';
 import './GestureCanvas.css';
 
 interface GestureCanvasProps {
+  videoRef?: React.RefObject<HTMLVideoElement | null>;
+  isCameraActive?: boolean;
   frameImage?: string | null;
   hands?: HandLandmarks[];
+  backendStatus?: 'connecting' | 'ready' | 'error' | 'idle';
+  backendError?: string | null;
   width?: number;
   height?: number;
 }
 
 export const GestureCanvas: React.FC<GestureCanvasProps> = ({
+  videoRef,
+  isCameraActive = false,
   frameImage,
   hands = [],
+  backendStatus = 'idle',
+  backendError = null,
   width = 640,
   height = 480,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
+  // Draw local camera feed in real-time
   useEffect(() => {
     const canvas = canvasRef.current;
+    const video = videoRef?.current;
+    
     if (!canvas) return;
-
+    
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Clear canvas
-    ctx.clearRect(0, 0, width, height);
+    const drawFrame = () => {
+      // Clear canvas
+      ctx.clearRect(0, 0, width, height);
 
-    // Draw background frame if available
-    if (frameImage) {
-      const img = new Image();
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0, width, height);
-        drawLandmarks(ctx, hands, width, height);
-      };
-      img.src = `data:image/jpeg;base64,${frameImage}`;
+      // Priority 1: Show LOCAL camera feed if active
+      if (isCameraActive && video && video.readyState >= 2) {
+        // Draw live camera preview with mirror effect
+        // save/restore is efficient and standard practice for canvas transforms
+        ctx.save();
+        ctx.scale(-1, 1);
+        ctx.translate(-width, 0);
+        ctx.drawImage(video, 0, 0, width, height);
+        ctx.restore();
+        
+        // Draw landmarks from backend (if available)
+        if (hands && hands.length > 0) {
+          drawLandmarks(ctx, hands, width, height);
+        }
+        
+        // Show backend status overlay
+        if (backendStatus === 'connecting') {
+          drawStatusOverlay(ctx, 'Connecting to backend...', 'info', width, height);
+        } else if (backendStatus === 'error' && backendError) {
+          drawStatusOverlay(ctx, `Backend: ${backendError}`, 'error', width, height);
+        }
+      } 
+      // Priority 2: Show backend processed frame (fallback)
+      else if (frameImage) {
+        const img = new Image();
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0, width, height);
+          drawLandmarks(ctx, hands, width, height);
+        };
+        img.src = `data:image/jpeg;base64,${frameImage}`;
+      } 
+      // Priority 3: Show placeholder
+      else {
+        drawPlaceholder(ctx, width, height);
+      }
+
+      // Continue animation loop
+      if (isCameraActive) {
+        animationFrameRef.current = requestAnimationFrame(drawFrame);
+      }
+    };
+
+    // Start animation loop
+    if (isCameraActive) {
+      drawFrame();
     } else {
-      // Draw placeholder
-      drawPlaceholder(ctx, width, height);
-      drawLandmarks(ctx, hands, width, height);
+      // Draw once if not active
+      drawFrame();
     }
-  }, [frameImage, hands, width, height]);
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [videoRef, isCameraActive, frameImage, hands, backendStatus, backendError, width, height]);
 
   const drawPlaceholder = (ctx: CanvasRenderingContext2D, w: number, h: number) => {
     // Gradient background
@@ -73,11 +129,30 @@ export const GestureCanvas: React.FC<GestureCanvasProps> = ({
     }
 
     // Center text
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
     ctx.font = '24px Inter';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('Waiting for camera feed...', w / 2, h / 2);
+    ctx.fillText('Click "Start Camera" to begin', w / 2, h / 2);
+  };
+
+  const drawStatusOverlay = (
+    ctx: CanvasRenderingContext2D,
+    message: string,
+    type: 'info' | 'error',
+    w: number,
+    h: number
+  ) => {
+    // Semi-transparent overlay at bottom
+    ctx.fillStyle = type === 'error' ? 'rgba(255, 51, 102, 0.8)' : 'rgba(0, 240, 255, 0.8)';
+    ctx.fillRect(0, h - 50, w, 50);
+    
+    // Message text
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 14px Inter';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(message, w / 2, h - 25);
   };
 
   const drawLandmarks = (

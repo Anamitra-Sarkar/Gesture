@@ -10,12 +10,17 @@ import {
   Settings,
   Upload,
   BarChart3,
+  Wifi,
+  WifiOff,
+  Loader,
 } from 'lucide-react';
+import { WebSocketState } from '../../types';
 import './ControlPanel.css';
 
 interface ControlPanelProps {
   isCameraActive: boolean;
   isConnected: boolean;
+  connectionState?: WebSocketState;
   onStartCamera: () => void;
   onStopCamera: () => void;
   onReset: () => void;
@@ -26,12 +31,51 @@ interface ControlPanelProps {
 export const ControlPanel: React.FC<ControlPanelProps> = ({
   isCameraActive,
   isConnected,
+  connectionState = WebSocketState.DISCONNECTED,
   onStartCamera,
   onStopCamera,
   onReset,
   onUploadClick,
   onAnalyticsClick,
 }) => {
+  // Get connection status display
+  const getConnectionStatus = () => {
+    switch (connectionState) {
+      case WebSocketState.CONNECTING:
+        return {
+          text: 'Connecting to backend...',
+          icon: <Loader size={16} className="spinning" />,
+          className: 'connecting',
+        };
+      case WebSocketState.CONNECTED:
+        return {
+          text: 'Connected - Waiting for ready signal',
+          icon: <Loader size={16} className="spinning" />,
+          className: 'connecting',
+        };
+      case WebSocketState.READY:
+        return {
+          text: 'Backend Ready',
+          icon: <Wifi size={16} />,
+          className: 'connected',
+        };
+      case WebSocketState.ERROR:
+        return {
+          text: 'Backend Error - Camera works locally',
+          icon: <WifiOff size={16} />,
+          className: 'error',
+        };
+      case WebSocketState.DISCONNECTED:
+      default:
+        return {
+          text: 'Backend Disconnected',
+          icon: <WifiOff size={16} />,
+          className: 'disconnected',
+        };
+    }
+  };
+
+  const status = getConnectionStatus();
   return (
     <motion.div
       className="control-panel glass-card"
@@ -107,19 +151,26 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
 
       {/* Connection Status */}
       <div className="connection-status">
-        <div className={`status-indicator ${isConnected ? 'connected' : 'disconnected'}`}>
+        <div className={`status-indicator ${status.className}`}>
           <motion.div
-            className="status-dot"
-            animate={isConnected ? {
-              scale: [1, 1.2, 1],
-              opacity: [1, 0.7, 1],
+            className="status-icon"
+            animate={connectionState === WebSocketState.CONNECTING || connectionState === WebSocketState.CONNECTED ? {
+              rotate: 360,
             } : {}}
             transition={{
-              duration: 2,
-              repeat: Infinity,
+              duration: 1,
+              repeat: connectionState === WebSocketState.CONNECTING || connectionState === WebSocketState.CONNECTED ? Infinity : 0,
+              ease: "linear",
             }}
-          />
-          <span>{isConnected ? 'Connected' : 'Disconnected'}</span>
+          >
+            {status.icon}
+          </motion.div>
+          <div className="status-text">
+            <span className="status-label">{status.text}</span>
+            {connectionState === WebSocketState.ERROR && (
+              <span className="status-hint">Local preview still works</span>
+            )}
+          </div>
         </div>
       </div>
     </motion.div>

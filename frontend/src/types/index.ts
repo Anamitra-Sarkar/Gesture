@@ -68,12 +68,35 @@ export interface PerformanceMetrics {
   detection_accuracy?: number;
 }
 
+// WebSocket connection states
+export const WebSocketState = {
+  DISCONNECTED: 'DISCONNECTED',
+  CONNECTING: 'CONNECTING',
+  CONNECTED: 'CONNECTED',
+  READY: 'READY',
+  ERROR: 'ERROR',
+} as const;
+
+export type WebSocketState = typeof WebSocketState[keyof typeof WebSocketState];
+
 export interface WebSocketMessage {
   message_type: string;
   data: {
     frame_analysis?: FrameAnalysis;
     frame_image?: string;
     error?: string;
+    status?: string;
   };
   timestamp: number;
 }
+
+// Upload states
+export const UploadState = {
+  IDLE: 'IDLE',
+  UPLOADING: 'UPLOADING',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+} as const;
+
+export type UploadState = typeof UploadState[keyof typeof UploadState];

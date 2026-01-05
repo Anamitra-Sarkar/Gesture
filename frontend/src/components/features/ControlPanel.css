@@ -110,9 +110,55 @@
   background: rgba(0, 255, 136, 0.1);
 }
 
+.status-indicator.connecting {
+  color: var(--color-primary);
+  background: rgba(0, 240, 255, 0.1);
+}
+
+.status-indicator.error {
+  color: var(--color-error);
+  background: rgba(255, 51, 102, 0.1);
+}
+
 .status-indicator.disconnected {
   color: rgba(255, 255, 255, 0.5);
   background: rgba(255, 255, 255, 0.05);
+}
+
+.status-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-icon .spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.status-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.status-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.status-hint {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  font-weight: 400;
 }
 
 .status-dot {
@@ -128,4 +174,62 @@
 
 .status-indicator.disconnected .status-dot {
   background: rgba(255, 255, 255, 0.5);
+}
+
+/* Mobile and tablet improvements */
+@media (max-width: 768px) {
+  .control-panel {
+    padding: var(--space-sm);
+  }
+
+  .control-buttons {
+    gap: var(--space-xs);
+  }
+
+  .control-btn {
+    padding: var(--space-sm);
+    font-size: 0.9rem;
+  }
+
+  .control-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .control-panel {
+    padding: var(--space-xs);
+  }
+
+  .control-panel-header {
+    padding-bottom: var(--space-xs);
+  }
+
+  .control-panel-header h3 {
+    font-size: 1rem;
+  }
+
+  .control-btn {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .control-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .status-indicator {
+    padding: var(--space-xs);
+    font-size: 0.8rem;
+  }
+
+  .status-label {
+    font-size: 0.8rem;
+  }
+
+  .status-hint {
+    font-size: 0.7rem;
+  }
 }
