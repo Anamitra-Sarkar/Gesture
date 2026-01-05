@@ -2,7 +2,7 @@
 
 **Production-Ready Computer Vision System with Real-Time Hand Tracking and Gesture Recognition**
 
-A client-grade, full-stack hand gesture recognition platform featuring live webcam processing, video upload capabilities, persistent analytics, and an advanced animated UI. Built with modern technologies for enterprise-level computer vision processing and user experience.
+A client-grade, full-stack hand gesture recognition platform featuring browser-based camera capture, cloud-compatible architecture, persistent analytics, and an advanced animated UI. Built with modern technologies for enterprise-level computer vision processing and user experience.
 
 ![Platform Preview](https://img.shields.io/badge/Status-Production%20Ready-success)
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
@@ -16,10 +16,11 @@ A client-grade, full-stack hand gesture recognition platform featuring live webc
 
 ## 🎯 Overview
 
-This is a **production-quality, client-deliverable system** that provides enterprise-grade hand gesture recognition with:
+This is a **production-quality, cloud-deployed system** that provides enterprise-grade hand gesture recognition with:
 
-- **Computer Vision**: Real-time hand tracking with MediaPipe
-- **Backend Architecture**: Modular FastAPI service with WebSocket streaming
+- **Browser-Based Camera**: Camera capture happens entirely in the browser (client-side)
+- **Cloud Architecture**: Fully compatible with cloud deployment (Render, AWS, GCP, Azure)
+- **Backend Processing**: MediaPipe hand tracking runs server-side on received frames
 - **Frontend Experience**: Futuristic glassmorphism UI with heavy animations
 - **System Design**: Clean separation of concerns, scalable structure
 - **Performance**: Optimized processing with FPS monitoring and metrics
@@ -30,10 +31,13 @@ This is a **production-quality, client-deliverable system** that provides enterp
 
 ## ✨ Core Features
 
-### 🎥 **Dual Input Modes**
-- **Live Webcam Feed**: Real-time hand tracking with low latency
-- **Video Upload**: Process pre-recorded videos (MP4, AVI, WebM, MOV)
-- Frame-by-frame analysis with configurable processing
+### 🎥 **Production Architecture (Client-Side Camera)**
+- **Browser Camera Capture**: Camera access via `navigator.mediaDevices.getUserMedia`
+- **Frame Streaming**: Client sends frames to server via WebSocket for processing
+- **Cloud Compatible**: No server-side camera dependencies - works on any cloud platform
+- **Permission Management**: Explicit user-initiated permission requests with clear UX
+- **Device Selection**: Support for multiple cameras (front/back on mobile)
+- **Mobile Support**: Works on iOS Safari, Android Chrome, and desktop browsers
 
 ### 🖐️ **Advanced Gesture Recognition**
 Detects 8+ gesture types with confidence scoring:
@@ -63,8 +67,8 @@ Detects 8+ gesture types with confidence scoring:
 - **Responsive Layout**: Desktop-first, mobile-adapted
 
 ### ⚡ **Performance & Analytics**
-- Real-time FPS calculation
-- Processing latency metrics
+- Real-time FPS calculation (client-side)
+- Processing latency metrics (server-side)
 - Frame processing statistics
 - Gesture detection counters
 - Live connection status
@@ -77,50 +81,61 @@ Detects 8+ gesture types with confidence scoring:
 - Browser-specific permission instructions (Chrome, Firefox, Safari, Mobile)
 - Clear permission states (waiting, granted, denied, unavailable)
 - File validation for video uploads (format, size, corruption detection)
-- CORS configuration for production domains
-- Secure WebSocket support (WSS)
+- CORS configuration for production domains (supports single, CSV, and JSON array formats)
+- Secure WebSocket support (WSS in production)
 
 ---
 
 ## 🏗️ System Architecture
 
+### **Production Architecture: Client-Side Camera Model**
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      FRONTEND (React + TS)                   │
-│  ┌─────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │  Control    │  │   Canvas     │  │    Gesture       │  │
-│  │  Panel      │  │  Renderer    │  │   Dashboard      │  │
-│  └─────────────┘  └──────────────┘  └──────────────────┘  │
-│         │                 │                    │            │
-│         └─────────────────┴────────────────────┘            │
+│                  BROWSER (Client-Side)                       │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  navigator.mediaDevices.getUserMedia()               │  │
+│  │  • Camera permission request                         │  │
+│  │  • Video stream capture (1280x720@30fps)            │  │
+│  │  • Frame encoding (JPEG)                            │  │
+│  └──────────────────────────────────────────────────────┘  │
 │                           │                                  │
-│                    WebSocket / REST API                      │
-│                           │                                  │
+│                    WebSocket (WSS)                           │
+│                   Send: Video Frames                         │
+│                   Receive: Landmarks + Gestures             │
 └───────────────────────────┼──────────────────────────────────┘
-                            │
+                             │
 ┌───────────────────────────┼──────────────────────────────────┐
-│                      BACKEND (FastAPI)                       │
-│  ┌─────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │  API        │  │  WebSocket   │  │   Video          │  │
-│  │  Endpoints  │  │  Streaming   │  │   Processing     │  │
-│  └─────────────┘  └──────────────┘  └──────────────────┘  │
-│         │                 │                    │            │
-│         └─────────────────┴────────────────────┘            │
+│                  CLOUD SERVER (Render/AWS/GCP)              │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  WebSocket Handler (/ws/live)                        │  │
+│  │  • Receive base64 frames from client                │  │
+│  │  • Decode frames                                     │  │
+│  └──────────────────────────────────────────────────────┘  │
 │                           │                                  │
-│                 ┌─────────────────────┐                     │
-│                 │  Hand Tracking      │                     │
-│                 │  Engine             │                     │
-│                 │  (MediaPipe)        │                     │
-│                 └─────────────────────┘                     │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Hand Tracking Engine (MediaPipe)                    │  │
+│  │  • 21-point landmark detection                       │  │
+│  │  • Multi-hand tracking                               │  │
+│  │  • Gesture recognition (rule-based)                  │  │
+│  └──────────────────────────────────────────────────────┘  │
 │                           │                                  │
-│        ┌──────────────────┴────────────────────┐           │
-│        │                                         │           │
-│  ┌──────────────┐                    ┌─────────────────┐  │
-│  │  Landmark    │                    │    Gesture      │  │
-│  │  Smoother    │                    │  Recognizer     │  │
-│  └──────────────┘                    └─────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Response                                            │  │
+│  │  • Hand landmarks (normalized coordinates)           │  │
+│  │  • Detected gestures + confidence                    │  │
+│  │  • Processing metrics                                │  │
+│  │  • Annotated frame (optional)                        │  │
+│  └──────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+**Key Architecture Points:**
+- ✅ **No server-side camera**: Works on any cloud platform without physical camera access
+- ✅ **Browser captures camera**: All camera permission and capture logic is client-side
+- ✅ **Frame streaming**: Client sends frames to server for heavy ML processing
+- ✅ **Scalable**: Stateless server design allows horizontal scaling
+- ✅ **Secure**: HTTPS required for camera access, WSS for WebSocket security
 
 ### **Backend Components**
 
@@ -226,6 +241,26 @@ The platform is deployed with a distributed architecture:
 - **Backend**: Render (Container Service)
 - **Communication**: REST API + WebSocket (WSS in production)
 
+### **Why Client-Side Camera? (Architecture Decision)**
+
+**❌ OLD (Doesn't Work in Cloud):**
+```
+Browser → Backend tries cv2.VideoCapture() → ❌ No camera in cloud
+```
+
+**✅ NEW (Cloud-Compatible):**
+```
+Browser captures camera → Sends frames via WebSocket → Backend processes with MediaPipe → Returns results
+```
+
+**Key Benefits:**
+1. **Cloud Compatible**: Works on Render, AWS, GCP, Azure (no physical camera needed)
+2. **Scalable**: Backend is stateless and can scale horizontally
+3. **Secure**: Camera permission handled by browser security model
+4. **Better UX**: User has full control over camera access
+5. **Mobile Friendly**: Works on any device with a camera and browser
+6. **No Docker Camera Issues**: No need for --privileged or /dev/video0 mounting
+
 ### **Backend Deployment (Render)**
 
 1. **Prerequisites**
@@ -243,6 +278,11 @@ The platform is deployed with a distributed architecture:
    CORS_ORIGINS=https://gesture-detection-lac.vercel.app
    DEBUG_MODE=false
    ```
+   
+   **CORS_ORIGINS Format Options:**
+   - Single origin: `https://your-frontend.vercel.app`
+   - Multiple (CSV): `https://app1.com,https://app2.com`
+   - JSON array: `["https://app1.com","https://app2.com"]`
 
 4. **Build Command**: Automatic (uses Dockerfile)
    
@@ -251,6 +291,13 @@ The platform is deployed with a distributed architecture:
    - Optimized for OpenCV and MediaPipe
    - Production dependencies only
    - Automatic PORT configuration
+   - **No camera dependencies** (cloud-compatible)
+
+6. **Health Checks**:
+   - Render's health checks use HEAD requests
+   - Endpoint: `HEAD /health` (supported)
+   - Alternative: `GET /health` (also supported)
+   - Returns 200 OK when healthy
 
 ### **Frontend Deployment (Vercel)**
 
@@ -277,7 +324,14 @@ The platform is deployed with a distributed architecture:
 
 ### **Camera Permissions in Production**
 
-The application handles camera permissions across different browsers and devices:
+The application handles camera permissions using the browser's native API:
+
+#### **How It Works**
+1. Camera permission is requested through the browser's `navigator.mediaDevices.getUserMedia()` API
+2. Permission modal provides clear instructions before requesting access
+3. Browser shows native permission prompt
+4. Camera stream is captured entirely in the browser (client-side)
+5. Frames are encoded and sent to server via WebSocket for processing
 
 #### **Desktop Browsers**
 - **Chrome/Edge**: Click camera icon in address bar → Allow
@@ -285,19 +339,26 @@ The application handles camera permissions across different browsers and devices
 - **Safari**: Safari → Settings → Websites → Camera → Allow
 
 #### **Mobile Browsers**
-- **Android Chrome**: Browser prompts automatically
+- **Android Chrome**: Browser prompts automatically, or check Settings → Site Settings → Camera
 - **iOS Safari**: Settings → Safari → Camera → Allow for website
 - **Notes**: 
-  - HTTPS is **required** for camera access
+  - HTTPS is **required** for camera access (Vercel provides this automatically)
   - Some mobile browsers may have additional restrictions
   - First-time users see a permission modal with clear instructions
 
 #### **Permission States**
 The app clearly indicates:
-- ✅ **Granted**: Camera ready to use
+- ✅ **Granted**: Camera ready to use, capturing in browser
 - ⏳ **Prompt**: Waiting for user permission
 - ❌ **Denied**: User must enable in browser settings
 - ⚠️ **Unavailable**: No camera detected or in use by another app
+
+#### **Troubleshooting Camera Permissions**
+- If permission is denied, check browser address bar for camera icon
+- Clear site data and reload if permissions are stuck
+- Ensure no other application is using the camera
+- Check system permissions on mobile devices
+- Make sure you're accessing via HTTPS (not HTTP)
 
 ### **WebSocket Configuration**
 
@@ -350,14 +411,22 @@ The frontend automatically detects the protocol based on the API URL.
 
 ## 📖 Usage Guide
 
-### **Live Webcam Mode**
+### **Live Camera Mode (Client-Side Capture)**
 
 1. Click **"Start Camera"** in the control panel
-2. Allow camera access when prompted (permission modal will guide you)
-3. Show your hand to the camera
-4. Watch real-time gesture detection with confidence scores
-5. View landmarks overlaid on the video feed
-6. Access **Analytics Dashboard** to view historical data
+2. Permission modal will appear - click "Allow Camera Access"
+3. Browser will prompt for camera permission - click "Allow"
+4. Camera starts capturing in browser, frames are sent to server for processing
+5. Watch real-time gesture detection with confidence scores
+6. View landmarks overlaid on the video feed
+7. Access **Analytics Dashboard** to view historical data
+
+**Important Notes:**
+- Camera capture happens entirely in your browser (client-side)
+- Frames are sent to the server only for ML processing
+- No camera feed is stored or recorded
+- Works on any device with a camera and modern browser
+- Requires HTTPS in production (automatically provided by Vercel)
 
 ### **Video Upload Mode**
 
@@ -499,25 +568,43 @@ VITE_API_URL=http://localhost:8000
 ## 🐛 Troubleshooting
 
 ### **Camera Not Starting**
-- Check camera permissions in browser/OS
-- Ensure no other app is using the camera
-- Try different `CAMERA_INDEX` values (0, 1, 2...)
+- Check camera permissions in browser (click camera icon in address bar)
+- Ensure no other app is using the camera (close Zoom, Teams, etc.)
+- Reload the page and try again
+- Clear browser cache and site data
+- **Note**: Camera is captured in the browser, not on the server
 
-### **Low FPS**
-- Reduce `CAMERA_WIDTH` and `CAMERA_HEIGHT`
-- Set `MP_MODEL_COMPLEXITY=0` for faster processing
+### **Low FPS / Performance Issues**
 - Close other resource-intensive applications
+- Use a modern browser (latest Chrome, Firefox, or Edge recommended)
+- Check your internet connection (frames are sent to server for processing)
+- Try reducing browser window size
+- **Note**: Processing happens server-side, but network latency affects FPS
 
 ### **WebSocket Connection Failed**
-- Verify backend is running on correct port
-- Check firewall settings
-- Ensure `VITE_API_URL` matches backend address
+- Verify backend is running and accessible
+- Check network/firewall settings
+- Ensure CORS is configured correctly on backend
+- In production, ensure WSS (secure WebSocket) is used
 
 ### **Gestures Not Detected**
 - Ensure good lighting conditions
-- Keep hand within frame
+- Keep hand within camera frame (centered)
 - Try different hand orientations
-- Adjust `GESTURE_CONFIDENCE_THRESHOLD`
+- Move hand slightly farther from camera
+- Ensure only one or two hands are in frame
+
+### **Permission Denied Error**
+- Click camera icon in browser address bar
+- Select "Always allow" and reload
+- Check system camera permissions (especially on Mac)
+- If using mobile, check app permissions in system settings
+
+### **"Camera unavailable" Error**
+- Ensure camera is connected (for external webcams)
+- Check if another application is using the camera
+- Restart browser
+- Check browser console for detailed error messages
 
 ---
 
