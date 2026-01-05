@@ -21,7 +21,7 @@ This guide provides comprehensive instructions for deploying the Hand Gesture Re
 1. Log in to [Render Dashboard](https://dashboard.render.com/)
 2. Click "New +" → "Web Service"
 3. Connect your GitHub repository
-4. Select the repository: `Anamitra-Sarkar/Gesture`
+4. Select your repository (e.g., `username/your-repo-name`)
 
 ### Step 2: Configure Service
 
@@ -128,7 +128,7 @@ Expected responses:
 
 1. Log in to [Vercel Dashboard](https://vercel.com/dashboard)
 2. Click "Add New..." → "Project"
-3. Import your GitHub repository: `Anamitra-Sarkar/Gesture`
+3. Import your GitHub repository (e.g., `username/your-repo-name`)
 
 ### Step 2: Configure Project
 

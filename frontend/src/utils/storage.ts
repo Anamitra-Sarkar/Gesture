@@ -173,9 +173,16 @@ export function clearAnalytics(): void {
 }
 
 /**
- * Create a new session ID
+ * Create a new session ID using secure random values
  */
 export function createSessionId(): string {
+  // Use crypto.getRandomValues for cryptographically secure random values
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    const array = new Uint32Array(2);
+    crypto.getRandomValues(array);
+    return `session_${Date.now()}_${array[0].toString(36)}${array[1].toString(36)}`;
+  }
+  // Fallback for environments without crypto API
   return `session_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }
 

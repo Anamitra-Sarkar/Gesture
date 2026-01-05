@@ -98,9 +98,9 @@ export async function requestCameraPermission(): Promise<PermissionResult> {
     const devices = await navigator.mediaDevices.enumerateDevices();
     const cameras = devices
       .filter(device => device.kind === 'videoinput')
-      .map(device => ({
+      .map((device, index) => ({
         deviceId: device.deviceId,
-        label: device.label || `Camera ${device.deviceId.slice(0, 5)}`,
+        label: device.label || `Camera ${index + 1}`,
         kind: 'videoinput' as const,
       }));
 

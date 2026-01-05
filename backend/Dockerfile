@@ -33,4 +33,4 @@ RUN mkdir -p uploads logs
 EXPOSE 8000
 
 # Run the application with PORT environment variable support
-CMD python main.py
+CMD ["python", "main.py"]
