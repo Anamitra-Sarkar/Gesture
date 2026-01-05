@@ -9,17 +9,49 @@
 
 .app-header {
   padding: var(--space-lg) var(--space-xl);
-  text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
   z-index: 10;
 }
 
+.header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.logo-image {
+  width: 60px;
+  height: 60px;
+  filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.5));
+  animation: logoFloat 3s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.header-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .app-title {
   font-size: 2.5rem;
   font-weight: 800;
-  margin-bottom: var(--space-sm);
+  margin: 0;
   letter-spacing: -0.02em;
 }
 
@@ -27,6 +59,7 @@
   color: rgba(255, 255, 255, 0.7);
   font-size: 1rem;
   font-weight: 400;
+  margin: 0;
 }
 
 .app-main {
@@ -129,12 +162,21 @@
 }
 
 @media (max-width: 768px) {
+  .app-header {
+    padding: var(--space-md);
+  }
+
+  .logo-image {
+    width: 45px;
+    height: 45px;
+  }
+
   .app-title {
     font-size: 1.8rem;
   }
 
   .app-subtitle {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
 
   .app-main {
@@ -144,6 +186,34 @@
 
   .sidebar-left {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    padding: var(--space-sm);
+  }
+
+  .header-logo {
+    gap: var(--space-sm);
+  }
+
+  .logo-image {
+    width: 40px;
+    height: 40px;
+  }
+
+  .app-title {
+    font-size: 1.5rem;
+  }
+
+  .app-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .app-main {
+    padding: var(--space-xs);
+    gap: var(--space-xs);
   }
 }
 

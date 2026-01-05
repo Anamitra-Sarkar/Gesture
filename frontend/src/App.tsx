@@ -229,12 +229,19 @@ function App() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="app-title">
-          <span className="neon-text">Hand Gesture</span> Recognition Platform
-        </h1>
-        <p className="app-subtitle">
-          Production-grade computer vision powered by MediaPipe & React
-        </p>
+        <div className="header-content">
+          <div className="header-logo">
+            <img src="/phantome-logo.svg" alt="Phantome Logo" className="logo-image" />
+            <div className="header-title-group">
+              <h1 className="app-title">
+                <span className="neon-text">Phantome</span>
+              </h1>
+              <p className="app-subtitle">
+                Advanced Hand Gesture Recognition Platform
+              </p>
+            </div>
+          </div>
+        </div>
       </motion.header>
 
       {/* Main Content */}
@@ -318,7 +325,7 @@ function App() {
         transition={{ duration: 0.5, delay: 0.3 }}
       >
         <p>
-          Built with React, TypeScript, FastAPI, MediaPipe & Framer Motion
+          Phantome &copy; {new Date().getFullYear()} - Powered by React, TypeScript, FastAPI & MediaPipe
         </p>
       </motion.footer>
     </div>

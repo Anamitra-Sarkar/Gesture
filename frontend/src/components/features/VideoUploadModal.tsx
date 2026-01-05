@@ -3,9 +3,10 @@
  */
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, File, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, X, File, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import { apiService } from '../../services/api';
 import { validateVideoFile } from '../../utils/permissions';
+import { UploadState } from '../../types';
 import type { VideoUploadResponse } from '../../types';
 import './VideoUploadModal.css';
 
@@ -22,10 +23,9 @@ export const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [uploadState, setUploadState] = useState<UploadState>(UploadState.IDLE);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -63,7 +63,7 @@ export const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
   const handleUpload = async () => {
     if (!selectedFile) return;
 
-    setUploading(true);
+    setUploadState(UploadState.UPLOADING);
     setError(null);
     setUploadProgress(0);
 
@@ -83,30 +83,49 @@ export const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
       
       clearInterval(progressInterval);
       setUploadProgress(100);
-      setSuccess(true);
+      setUploadState(UploadState.COMPLETED);
       
       if (onUploadSuccess) {
         onUploadSuccess(response);
       }
 
+      // Auto-close after success
       setTimeout(() => {
         handleClose();
       }, 2000);
       
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
-    } finally {
-      setUploading(false);
+      setUploadState(UploadState.FAILED);
+      // Extract meaningful error message from backend
+      const errorMsg = err instanceof Error 
+        ? err.message 
+        : 'Upload failed. Please check your network connection and try again.';
+      setError(errorMsg);
     }
   };
 
   const handleClose = () => {
     setSelectedFile(null);
-    setUploading(false);
+    setUploadState(UploadState.IDLE);
     setUploadProgress(0);
     setError(null);
-    setSuccess(false);
     onClose();
+  };
+
+  // Get status message based on upload state
+  const getStatusMessage = () => {
+    switch (uploadState) {
+      case UploadState.UPLOADING:
+        return 'Uploading video to server...';
+      case UploadState.PROCESSING:
+        return 'Processing video...';
+      case UploadState.COMPLETED:
+        return 'Upload successful!';
+      case UploadState.FAILED:
+        return error || 'Upload failed';
+      default:
+        return null;
+    }
   };
 
   return (
@@ -170,7 +189,7 @@ export const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
                       </div>
                     </div>
 
-                    {uploading && (
+                    {uploadState === UploadState.UPLOADING && (
                       <div className="upload-progress">
                         <div className="progress-bar-container">
                           <motion.div
@@ -181,32 +200,36 @@ export const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
                           />
                         </div>
                         <p>{uploadProgress}%</p>
+                        <span className="upload-status">{getStatusMessage()}</span>
                       </div>
                     )}
 
-                    {success && (
+                    {uploadState === UploadState.COMPLETED && (
                       <motion.div
                         className="success-message"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                       >
                         <CheckCircle size={24} />
-                        <span>Upload successful!</span>
+                        <span>{getStatusMessage()}</span>
                       </motion.div>
                     )}
 
-                    {error && (
+                    {uploadState === UploadState.FAILED && error && (
                       <motion.div
                         className="error-message"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                       >
                         <AlertCircle size={24} />
-                        <span>{error}</span>
+                        <div className="error-content">
+                          <span className="error-title">Upload Failed</span>
+                          <span className="error-detail">{error}</span>
+                        </div>
                       </motion.div>
                     )}
 
-                    {!uploading && !success && (
+                    {uploadState === UploadState.IDLE && (
                       <div className="file-actions">
                         <button
                           className="btn btn-primary"
@@ -217,6 +240,28 @@ export const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
                         <button
                           className="btn"
                           onClick={() => setSelectedFile(null)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+
+                    {uploadState === UploadState.FAILED && (
+                      <div className="file-actions">
+                        <button
+                          className="btn btn-primary"
+                          onClick={handleUpload}
+                        >
+                          <Loader size={16} />
+                          Retry Upload
+                        </button>
+                        <button
+                          className="btn"
+                          onClick={() => {
+                            setSelectedFile(null);
+                            setUploadState(UploadState.IDLE);
+                            setError(null);
+                          }}
                         >
                           Cancel
                         </button>
