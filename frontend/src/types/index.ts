@@ -68,12 +68,31 @@ export interface PerformanceMetrics {
   detection_accuracy?: number;
 }
 
+// WebSocket connection states
+export enum WebSocketState {
+  DISCONNECTED = 'DISCONNECTED',
+  CONNECTING = 'CONNECTING',
+  CONNECTED = 'CONNECTED',
+  READY = 'READY',
+  ERROR = 'ERROR',
+}
+
 export interface WebSocketMessage {
   message_type: string;
   data: {
     frame_analysis?: FrameAnalysis;
     frame_image?: string;
     error?: string;
+    status?: string;
   };
   timestamp: number;
+}
+
+// Upload states
+export enum UploadState {
+  IDLE = 'IDLE',
+  UPLOADING = 'UPLOADING',
+  PROCESSING = 'PROCESSING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
 }

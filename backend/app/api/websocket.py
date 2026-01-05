@@ -29,9 +29,26 @@ async def websocket_live_tracking(websocket: WebSocket):
     - Client sends base64-encoded frames to this endpoint
     - Server processes frames and returns landmarks + gestures
     - No server-side camera access (cloud-compatible)
+    
+    CONNECTION LIFECYCLE:
+    1. Client connects (WebSocket OPEN)
+    2. Server sends READY message
+    3. Client can start sending frames
+    4. Server processes and responds with frame_analysis
     """
     await websocket.accept()
     logger.info("WebSocket connection established")
+    
+    # Send READY message to client
+    try:
+        await websocket.send_json({
+            "message_type": "ready",
+            "data": {"status": "ready"},
+            "timestamp": time.time()
+        })
+        logger.info("READY signal sent to client")
+    except Exception as e:
+        logger.error(f"Failed to send READY signal: {e}")
     
     # Create hand tracking engine for this connection
     hand_tracker = HandTrackingEngine()

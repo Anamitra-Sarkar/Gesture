@@ -24,9 +24,10 @@ function App() {
   const [permissionModalOpen, setPermissionModalOpen] = useState(false);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
+  const [backendStatus, setBackendStatus] = useState<'connecting' | 'ready' | 'error' | 'idle'>('idle');
   
-  const { isConnected, frameAnalysis, frameImage, connect, disconnect, sendFrame } = useWebSocket();
-  const { videoRef, isActive: isCameraActive, startCamera, stopCamera, captureFrame } = useCamera();
+  const { connectionState, isConnected, isReady, frameAnalysis, frameImage, error: wsError, connect, disconnect, sendFrame } = useWebSocket();
+  const { videoRef, isActive: isCameraActive, error: cameraError, startCamera, stopCamera, captureFrame } = useCamera();
   const { recentGestures, metrics, addGesture, updateMetrics, reset } = useGestureTracking();
   
   const frameIntervalRef = useRef<number | null>(null);
@@ -50,9 +51,12 @@ function App() {
     }
   }, [frameAnalysis, addGesture, updateMetrics]);
 
-  // Start sending frames to server when camera and WebSocket are active
+  // Start sending frames to server when camera and WebSocket are READY
   useEffect(() => {
-    if (isCameraActive && isConnected) {
+    if (isCameraActive && isReady) {
+      // Backend is ready, start sending frames
+      setBackendStatus('ready');
+      
       // Send frames at ~15 FPS (lower than capture rate to avoid overwhelming server)
       const sendInterval = 1000 / 15; // ~66ms
       
@@ -96,7 +100,7 @@ function App() {
         clearInterval(fpsIntervalRef.current);
       }
     };
-  }, [isCameraActive, isConnected, captureFrame, sendFrame, frameAnalysis, updateMetrics]);
+  }, [isCameraActive, isReady, captureFrame, sendFrame, frameAnalysis, updateMetrics]);
 
   const handleStartCamera = async () => {
     // First, show permission modal if not already granted
@@ -106,7 +110,9 @@ function App() {
     }
 
     try {
-      // Start client-side camera
+      setBackendStatus('connecting');
+      
+      // CRITICAL: Start client-side camera FIRST - show preview immediately
       await startCamera({
         width: 1280,
         height: 720,
@@ -114,15 +120,18 @@ function App() {
         frameRate: 30
       });
       
-      // Connect to WebSocket for processing
+      setCameraActive(true);
+      console.log('Camera started successfully - preview visible');
+      
+      // PARALLEL: Connect to WebSocket for backend processing (non-blocking)
+      // Camera preview is already visible, backend connection happens asynchronously
       connect();
       
-      setCameraActive(true);
-      
-      console.log('Camera started successfully');
     } catch (error) {
       console.error('Failed to start camera:', error);
-      alert('Failed to start camera. Please check your camera permissions and try again.');
+      setBackendStatus('error');
+      const errorMsg = error instanceof Error ? error.message : 'Failed to start camera. Please check your camera permissions and try again.';
+      alert(errorMsg);
     }
   };
 
@@ -136,7 +145,9 @@ function App() {
 
   const handleStartCameraAfterPermission = async () => {
     try {
-      // Start client-side camera
+      setBackendStatus('connecting');
+      
+      // CRITICAL: Start client-side camera FIRST - show preview immediately
       await startCamera({
         width: 1280,
         height: 720,
@@ -144,15 +155,17 @@ function App() {
         frameRate: 30
       });
       
-      // Connect to WebSocket for processing
+      setCameraActive(true);
+      console.log('Camera started after permission grant - preview visible');
+      
+      // PARALLEL: Connect to WebSocket for backend processing (non-blocking)
       connect();
       
-      setCameraActive(true);
-      
-      console.log('Camera started after permission grant');
     } catch (error) {
       console.error('Failed to start camera:', error);
-      alert('Failed to start camera. Please check your camera permissions and try again.');
+      setBackendStatus('error');
+      const errorMsg = error instanceof Error ? error.message : 'Failed to start camera. Please check your camera permissions and try again.';
+      alert(errorMsg);
     }
   };
 
@@ -165,6 +178,7 @@ function App() {
       disconnect();
       
       setCameraActive(false);
+      setBackendStatus('idle');
       
       // Reset counters
       frameCountRef.current = 0;
@@ -230,6 +244,7 @@ function App() {
           <ControlPanel
             isCameraActive={cameraActive}
             isConnected={isConnected}
+            connectionState={connectionState}
             onStartCamera={handleStartCamera}
             onStopCamera={handleStopCamera}
             onReset={handleReset}
@@ -249,8 +264,12 @@ function App() {
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             <GestureCanvas
+              videoRef={videoRef}
+              isCameraActive={isCameraActive}
               frameImage={frameImage}
               hands={frameAnalysis?.hands || []}
+              backendStatus={backendStatus}
+              backendError={wsError}
               width={640}
               height={480}
             />
