@@ -78,20 +78,23 @@ class Settings(BaseSettings):
         else:
             parsed_origins = [env_origins]
         
+        # If no valid origins were parsed, return defaults
+        if not parsed_origins:
+            return self._default_cors_origins
+        
         # Normalize origins: strip trailing slashes and add both versions
-        normalized_origins = []
+        # Use dict to maintain order while eliminating duplicates (Python 3.7+)
+        normalized_origins = {}
         for origin in parsed_origins:
             # Add version without trailing slash
             origin_no_slash = origin.rstrip('/')
-            if origin_no_slash and origin_no_slash not in normalized_origins:
-                normalized_origins.append(origin_no_slash)
-            
-            # Also add version with trailing slash for compatibility
-            origin_with_slash = origin_no_slash + '/'
-            if origin_with_slash not in normalized_origins:
-                normalized_origins.append(origin_with_slash)
+            if origin_no_slash:
+                normalized_origins[origin_no_slash] = None
+                # Also add version with trailing slash for compatibility
+                normalized_origins[origin_no_slash + '/'] = None
         
-        return normalized_origins if normalized_origins else self._default_cors_origins
+        result = list(normalized_origins.keys())
+        return result if result else self._default_cors_origins
     
     # Camera Settings
     CAMERA_INDEX: int = 0
