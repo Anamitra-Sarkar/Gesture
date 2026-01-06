@@ -2,13 +2,14 @@
  * API Service for communicating with the backend
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta. env.VITE_API_URL || 'http://localhost:8000';
 
 export class ApiService {
   private baseUrl: string;
 
-  constructor(baseUrl: string = API_BASE_URL) {
+  constructor(baseUrl:  string = API_BASE_URL) {
     this.baseUrl = baseUrl;
+    console.log('[ApiService] Initialized with base URL:', this.baseUrl);
   }
 
   // Camera endpoints
@@ -49,7 +50,7 @@ export class ApiService {
 
     const response = await fetch(`${this.baseUrl}/video/upload`, {
       method: 'POST',
-      body: formData,
+      body:  formData,
     });
 
     if (!response.ok) {
@@ -70,13 +71,19 @@ export class ApiService {
     const response = await fetch(`${this.baseUrl}/video/${fileId}`, {
       method: 'DELETE',
     });
-    if (!response.ok) throw new Error('Failed to delete video');
-    return response.json();
+    if (!response. ok) throw new Error('Failed to delete video');
+    return response. json();
   }
 
   // WebSocket
   createWebSocket(): WebSocket {
-    const wsUrl = this.baseUrl.replace('http', 'ws') + '/ws/live';
+    // Properly convert HTTP/HTTPS to WS/WSS
+    // This regex handles both http:  and https: protocols correctly
+    const wsUrl = this.baseUrl.replace(/^http(s)?:/, 'ws$1:') + '/ws/live';
+    
+    console.log('[ApiService] Creating WebSocket connection to:', wsUrl);
+    console.log('[ApiService] Base URL:', this.baseUrl);
+    
     return new WebSocket(wsUrl);
   }
 }
