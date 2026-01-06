@@ -25,7 +25,8 @@ class Settings(BaseSettings):
         "http://localhost:5173", 
         "http://127.0.0.1:3000", 
         "http://127.0.0.1:5173",
-        "https://gesture-detection-lac.vercel.app"  # Production frontend
+        "https://gesture-detection-lac.vercel.app",  # Production frontend
+        "https://gesture-detection-lac.vercel.app/"  # Production frontend with trailing slash
     ]
     
     def __init__(self, **kwargs):
@@ -48,6 +49,10 @@ class Settings(BaseSettings):
         - Single origin: "https://example.com"
         - Comma-separated: "https://example.com,https://another.com"
         - JSON array: '["https://example.com", "https://another.com"]'
+        
+        Automatically normalizes origins by:
+        - Stripping trailing slashes
+        - Including both with and without trailing slash versions for compatibility
         """
         env_origins = os.getenv("CORS_ORIGINS", "").strip()
         
@@ -55,24 +60,38 @@ class Settings(BaseSettings):
             # Note: Don't use logger here as it may not be initialized yet
             return self._default_cors_origins
         
+        parsed_origins = []
+        
         # Try to parse as JSON array first
         if env_origins.startswith('['):
             try:
                 origins = json.loads(env_origins)
                 if isinstance(origins, list):
                     parsed_origins = [str(origin).strip() for origin in origins if origin]
-                    return parsed_origins
             except json.JSONDecodeError:
                 # Fallback to default on parse error
                 return self._default_cors_origins
-        
         # Try comma-separated list
-        if ',' in env_origins:
+        elif ',' in env_origins:
             parsed_origins = [origin.strip() for origin in env_origins.split(',') if origin.strip()]
-            return parsed_origins
-        
         # Single origin
-        return [env_origins]
+        else:
+            parsed_origins = [env_origins]
+        
+        # Normalize origins: strip trailing slashes and add both versions
+        normalized_origins = []
+        for origin in parsed_origins:
+            # Add version without trailing slash
+            origin_no_slash = origin.rstrip('/')
+            if origin_no_slash and origin_no_slash not in normalized_origins:
+                normalized_origins.append(origin_no_slash)
+            
+            # Also add version with trailing slash for compatibility
+            origin_with_slash = origin_no_slash + '/'
+            if origin_with_slash not in normalized_origins:
+                normalized_origins.append(origin_with_slash)
+        
+        return normalized_origins if normalized_origins else self._default_cors_origins
     
     # Camera Settings
     CAMERA_INDEX: int = 0
