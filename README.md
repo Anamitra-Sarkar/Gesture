@@ -279,6 +279,8 @@ Browser captures camera → Sends frames via WebSocket → Backend processes wit
    DEBUG_MODE=false
    ```
    
+   **IMPORTANT**: Do NOT include trailing slashes in CORS_ORIGINS. The backend automatically handles both versions (with and without trailing slash) for compatibility.
+   
    **CORS_ORIGINS Format Options:**
    - Single origin: `https://your-frontend.vercel.app`
    - Multiple (CSV): `https://app1.com,https://app2.com`
@@ -315,6 +317,8 @@ Browser captures camera → Sends frames via WebSocket → Backend processes wit
    ```
    VITE_API_URL=https://your-backend.onrender.com
    ```
+   
+   **IMPORTANT**: Do NOT include trailing slashes in VITE_API_URL. The API service automatically constructs URLs correctly.
 
 4. **Features**:
    - Automatic HTTPS
