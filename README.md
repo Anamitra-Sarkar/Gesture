@@ -237,9 +237,12 @@ Open your browser to `http://localhost:5173` and click "Start Camera" to begin!
 ### **Deployment Architecture**
 
 The platform is deployed with a distributed architecture:
-- **Frontend**: Vercel (Static Site Hosting)
-- **Backend**: Render (Container Service)
+- **Frontend**: Vercel (Static Site Hosting) - https://gesture-detection-lac.vercel.app
+- **Backend**: Render (Container Service) - https://gesture-vl7k.onrender.com
 - **Communication**: REST API + WebSocket (WSS in production)
+- **Configuration**: URLs are **hardcoded** in source code (no environment variables needed)
+
+> 📖 **See [DEPLOYMENT_CONFIG.md](./DEPLOYMENT_CONFIG.md)** for detailed deployment configuration and connection setup.
 
 ### **Why Client-Side Camera? (Architecture Decision)**
 
@@ -272,19 +275,16 @@ Browser captures camera → Sends frames via WebSocket → Backend processes wit
    - Environment: Docker
    - Instance Type: Standard (or higher for production traffic)
    
-3. **Environment Variables**
+3. **Environment Variables** *(Optional - Not Required)*
+   
+   **✅ No environment variables needed!** The backend has production CORS origins hardcoded.
+   
+   However, you can optionally override the defaults:
    ```
    PORT=<auto-assigned by Render>
-   CORS_ORIGINS=https://gesture-detection-lac.vercel.app
+   CORS_ORIGINS=https://your-custom-frontend.com  # Optional
    DEBUG_MODE=false
    ```
-   
-   **IMPORTANT**: Do NOT include trailing slashes in CORS_ORIGINS. The backend automatically handles both versions (with and without trailing slash) for compatibility.
-   
-   **CORS_ORIGINS Format Options:**
-   - Single origin: `https://your-frontend.vercel.app`
-   - Multiple (CSV): `https://app1.com,https://app2.com`
-   - JSON array: `["https://app1.com","https://app2.com"]`
 
 4. **Build Command**: Automatic (uses Dockerfile)
    
@@ -313,12 +313,13 @@ Browser captures camera → Sends frames via WebSocket → Backend processes wit
    - Output Directory: `frontend/dist`
    - Install Command: `npm install`
 
-3. **Environment Variables**
-   ```
-   VITE_API_URL=https://your-backend.onrender.com
-   ```
+3. **Environment Variables** *(Optional - Not Required)*
    
-   **IMPORTANT**: Do NOT include trailing slashes in VITE_API_URL. The API service automatically constructs URLs correctly.
+   **✅ No environment variables needed!** The frontend automatically detects the environment:
+   - **Local Development** (localhost): Uses `http://localhost:8000`
+   - **Production** (Vercel): Uses `https://gesture-vl7k.onrender.com`
+   
+   The backend URL is hardcoded in `frontend/src/services/api.ts` for reliability.
 
 4. **Features**:
    - Automatic HTTPS
