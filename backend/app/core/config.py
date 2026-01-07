@@ -19,14 +19,13 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     
-    # Default CORS origins - these will be used if CORS_ORIGINS env var is not set
+    # Default CORS origins - always include production and development URLs
     _default_cors_origins: List[str] = [
         "http://localhost:3000", 
         "http://localhost:5173", 
         "http://127.0.0.1:3000", 
         "http://127.0.0.1:5173",
         "https://gesture-detection-lac.vercel.app",  # Production frontend
-        "https://gesture-detection-lac.vercel.app/"  # Production frontend with trailing slash
     ]
     
     def __init__(self, **kwargs):
@@ -56,9 +55,16 @@ class Settings(BaseSettings):
         """
         env_origins = os.getenv("CORS_ORIGINS", "").strip()
         
+        # If no env variable set, normalize and return defaults
         if not env_origins:
-            # Note: Don't use logger here as it may not be initialized yet
-            return self._default_cors_origins
+            # Normalize default origins to include both versions
+            normalized_defaults = {}
+            for origin in self._default_cors_origins:
+                origin_no_slash = origin.rstrip('/')
+                if origin_no_slash:
+                    normalized_defaults[origin_no_slash] = None
+                    normalized_defaults[origin_no_slash + '/'] = None
+            return list(normalized_defaults.keys())
         
         parsed_origins = []
         
@@ -69,8 +75,14 @@ class Settings(BaseSettings):
                 if isinstance(origins, list):
                     parsed_origins = [str(origin).strip() for origin in origins if origin]
             except json.JSONDecodeError:
-                # Fallback to default on parse error
-                return self._default_cors_origins
+                # Fallback to normalized defaults on parse error
+                normalized_defaults = {}
+                for origin in self._default_cors_origins:
+                    origin_no_slash = origin.rstrip('/')
+                    if origin_no_slash:
+                        normalized_defaults[origin_no_slash] = None
+                        normalized_defaults[origin_no_slash + '/'] = None
+                return list(normalized_defaults.keys())
         # Try comma-separated list
         elif ',' in env_origins:
             parsed_origins = [origin.strip() for origin in env_origins.split(',') if origin.strip()]
@@ -78,9 +90,15 @@ class Settings(BaseSettings):
         else:
             parsed_origins = [env_origins]
         
-        # If no valid origins were parsed, return defaults
+        # If no valid origins were parsed, return normalized defaults
         if not parsed_origins:
-            return self._default_cors_origins
+            normalized_defaults = {}
+            for origin in self._default_cors_origins:
+                origin_no_slash = origin.rstrip('/')
+                if origin_no_slash:
+                    normalized_defaults[origin_no_slash] = None
+                    normalized_defaults[origin_no_slash + '/'] = None
+            return list(normalized_defaults.keys())
         
         # Normalize origins: strip trailing slashes and add both versions
         # Use dict to maintain order while eliminating duplicates (Python 3.7+)
@@ -94,7 +112,16 @@ class Settings(BaseSettings):
                 normalized_origins[origin_no_slash + '/'] = None
         
         result = list(normalized_origins.keys())
-        return result if result else self._default_cors_origins
+        # Fallback to normalized defaults if result is empty
+        if not result:
+            normalized_defaults = {}
+            for origin in self._default_cors_origins:
+                origin_no_slash = origin.rstrip('/')
+                if origin_no_slash:
+                    normalized_defaults[origin_no_slash] = None
+                    normalized_defaults[origin_no_slash + '/'] = None
+            return list(normalized_defaults.keys())
+        return result
     
     # Camera Settings
     CAMERA_INDEX: int = 0

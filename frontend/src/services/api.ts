@@ -2,7 +2,22 @@
  * API Service for communicating with the backend
  */
 
-const API_BASE_URL = import.meta. env.VITE_API_URL || 'http://localhost:8000';
+// Production backend URL hardcoded for deployment
+// Development: Use localhost when running locally (detected by hostname)
+const getApiBaseUrl = () => {
+  // Check if running in development environment
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    // Use localhost for local development
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:8000';
+    }
+  }
+  // Use production backend URL for all deployed environments
+  return 'https://gesture-vl7k.onrender.com';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export class ApiService {
   private baseUrl: string;
